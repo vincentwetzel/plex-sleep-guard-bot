@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "plex-sleep-guard-bot"
+version = "0.1.0"
+description = "A Windows Discord bot that coordinates Plex playback and manual stay-awake leases."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aiohttp>=3.9,<4",
+    "discord.py>=2.4,<3",
+    "python-dotenv>=1.0,<2",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.scripts]
+plex-sleep-guard-bot = "plex_sleep_guard_bot.__main__:main"
