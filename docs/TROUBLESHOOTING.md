@@ -4,13 +4,13 @@ Start with the current file in `logs/PlexSleepGuardBot-YYYY-MM-DD.log` under the
 
 ## The bot does not start
 
-- Confirm Python 3.12 or later is installed and the project dependencies are installed in `.venv`.
+- Confirm the selected Python interpreter is version 3.12 or later and has `discord.py`, `aiohttp`, and `python-dotenv` installed. The launcher prefers `.venv\Scripts\python.exe` and otherwise uses the first `python.exe` on `PATH`.
 - Confirm `.env` exists in the project root and includes `DISCORD_APPLICATION_ID` and `DISCORD_BOT_TOKEN`.
 - Confirm the Application ID contains only a positive numeric ID and the token is current. If a token was reset in Discord, update the local `.env`.
 - Confirm the project directory can create/write `logs/`; notification preferences are written under `state/` when changed.
 - The native adapter requires Windows. It stops at startup on other platforms.
 
-The batch scripts require `.venv\Scripts\python.exe`. If it is missing, create the environment and install the project as described in [development](DEVELOPMENT.md). Run `python -m plex_sleep_guard_bot` in PowerShell for visible startup errors.
+The start script runs the package source from `src`, so an editable project install is not required. To install the runtime libraries for a system Python, run `python -m pip install discord.py aiohttp python-dotenv`. For visible startup errors, open PowerShell, change to the project's `src` directory, then run `python -m plex_sleep_guard_bot`.
 
 ## The bot is offline or a slash command is missing
 
@@ -47,10 +47,11 @@ The request cannot prevent explicit sleep or shutdown, power loss, or a machine 
 
 ## The supervisor does not start, stop, or restart
 
-- Ensure the `.venv` exists before running `start_plex_sleep_guard_bot.bat`.
-- Start and stop scripts are in the project root. They use the same `.venv` and `run/` directory.
+- Ensure `.venv` exists or that `python.exe` is on `PATH`; the selected interpreter also needs the three runtime dependencies.
+- Start and stop scripts are in the project root. They use the same selected interpreter and `run/` directory.
 - Check that the project is writable so the supervisor can create its lock, PID, and control markers under `run/`.
 - Start requests restart of an existing supervised process. Stop requests graceful bot shutdown; the supervisor allows 25 seconds before it force-terminates a stuck process.
+- A shortcut that should work with the stop script must launch `start_plex_sleep_guard_bot.bat`. A shortcut that launches `pythonw.exe` directly bypasses the supervisor and is not controlled by the start/stop scripts.
 - If a stale marker remains after a crash, stop the supervisor, remove only the relevant marker under `run/`, then start again.
 
 ## The request was not cleared

@@ -6,7 +6,10 @@ param(
 $ErrorActionPreference = 'Stop'
 $ProjectDir = [System.IO.Path]::GetFullPath($ProjectDir)
 $RunDir = Join-Path $ProjectDir 'run'
-$PythonExe = Join-Path $ProjectDir '.venv\Scripts\python.exe'
+$PythonExe = $env:PLEX_SLEEP_GUARD_PYTHON_EXE
+if (-not $PythonExe) {
+    $PythonExe = Join-Path $ProjectDir '.venv\Scripts\python.exe'
+}
 $LockPath = Join-Path $RunDir 'supervisor.lock'
 $PidPath = Join-Path $RunDir 'supervisor.pid'
 $StopPath = Join-Path $RunDir 'stop.request'
@@ -34,12 +37,13 @@ try {
     [System.IO.File]::WriteAllText($PidPath, [string] $PID)
     Remove-Item -LiteralPath $StopPath, $RestartPath -Force -ErrorAction SilentlyContinue
     $env:PLEX_SLEEP_GUARD_SUPERVISED = '1'
+    $SourceDir = Join-Path $ProjectDir 'src'
 
     while ($true) {
         $Child = Start-Process `
             -FilePath $PythonExe `
             -ArgumentList @('-m', 'plex_sleep_guard_bot') `
-            -WorkingDirectory $ProjectDir `
+            -WorkingDirectory $SourceDir `
             -WindowStyle Hidden `
             -PassThru
 

@@ -1,5 +1,10 @@
 # Release notes
 
+## Unreleased
+
+- Updated the Windows launcher to prefer the project virtual environment and fall back to `python.exe` on `PATH`; the supervisor now runs the package from `src` without requiring an editable install.
+- Documented runtime dependency setup, interpreter selection, and shortcut behavior: shortcuts should launch the supervised start script when the stop script is expected to manage the bot.
+
 ## 0.1.0 - Initial project implementation
 
 - Established the separate `plex-sleep-guard-bot` Python package for Windows x64, with editable installation and a console entry point.

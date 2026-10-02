@@ -28,9 +28,11 @@ For a visible development session, run:
 python -m plex_sleep_guard_bot
 ```
 
-The installed `plex-sleep-guard-bot` console command uses the same entry point. Ctrl+C initiates cancellation and cleanup. On Windows, `start_plex_sleep_guard_bot.bat` launches a hidden PowerShell supervisor, which runs `.venv\Scripts\python.exe` and restarts after unexpected bot exits. Running the start script again requests a graceful restart. `stop_plex_sleep_guard_bot.bat` requests a graceful stop. The bot checks markers under `run/`, closes its Discord and Plex clients, and clears its native request during cleanup. The supervisor waits up to 25 seconds before force-terminating a stuck bot.
+The installed `plex-sleep-guard-bot` console command uses the same entry point. Ctrl+C initiates cancellation and cleanup. On Windows, `start_plex_sleep_guard_bot.bat` launches a hidden PowerShell supervisor using the selected Python interpreter and restarts after unexpected bot exits. Running the start script again requests a graceful restart. `stop_plex_sleep_guard_bot.bat` requests a graceful stop. The bot checks markers under `run/`, closes its Discord and Plex clients, and clears its native request during cleanup. The supervisor waits up to 25 seconds before force-terminating a stuck bot.
 
-The scripts are project-root files and must be run after creating `.venv` and installing the package. Runtime logs live in `logs/`; preferences live in `state/`. Those directories and `run/` are ignored by Git.
+The start script uses `.venv\Scripts\python.exe` when it exists. Otherwise, it uses the first `python.exe` found on `PATH`. The supervisor runs the package from the project's `src` directory, so an editable project install is not required. The selected interpreter must be Python 3.12 or later and have `discord.py`, `aiohttp`, and `python-dotenv` installed. For a system Python, install those runtime dependencies with `python -m pip install discord.py aiohttp python-dotenv` from the project root. Runtime logs live in `logs/`; preferences live in `state/`. Those directories and `run/` are ignored by Git.
+
+To create a Windows shortcut that works with `stop_plex_sleep_guard_bot.bat`, set the shortcut target to `start_plex_sleep_guard_bot.bat` and **Start in** to the project root. Launching `pythonw.exe` directly starts an unsupervised bot process; the project's stop script only signals the supervisor and will not control that process.
 
 ## Command registration and Discord access
 

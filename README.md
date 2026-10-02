@@ -42,6 +42,10 @@ python -m plex_sleep_guard_bot
 
 The installed console command `plex-sleep-guard-bot` starts the same entry point. For an unattended hidden process, use the root-level `start_plex_sleep_guard_bot.bat`; use `stop_plex_sleep_guard_bot.bat` for a graceful stop. See [development and operation](docs/DEVELOPMENT.md) for supervisor behavior.
 
+The start script prefers `.venv\Scripts\python.exe`, then falls back to the first `python.exe` on `PATH`. It runs the package from the `src` directory, so an editable project install is not required. The selected Python 3.12+ interpreter must have `discord.py`, `aiohttp`, and `python-dotenv` installed; if needed, install them with `python -m pip install discord.py aiohttp python-dotenv`.
+
+For a Windows shortcut that remains manageable by the stop script, set its target to `start_plex_sleep_guard_bot.bat` and its **Start in** directory to the project root. A shortcut that runs `pythonw.exe` directly bypasses the supervisor, so the project stop script will not stop that process.
+
 Application commands are always synced globally. They can take time to appear in Discord after the first start or after command changes.
 
 ## Commands
