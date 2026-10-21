@@ -2,7 +2,7 @@
 
 Plex Sleep Guard Bot is a Windows x64 Discord bot that monitors Plex playback and accepts bounded `/stay-awake minutes:<integer>` requests. Plex playback and its post-playback grace period share one Windows system-required power request with manual timers. The display is not inhibited.
 
-The bot uses Python 3.12+, `discord.py`, `aiohttp`, `python-dotenv`, and a small `ctypes` adapter for the Windows Power Request API. Discord interactions arrive over the outbound Gateway connection. The bot does not need privileged Gateway intents or an inbound listener.
+The bot uses Python 3.12+, `discord.py`, `aiohttp`, `python-dotenv`, and a small `ctypes` adapter for Windows power request and power-plan APIs. Discord interactions arrive over the outbound Gateway connection. The bot does not need privileged Gateway intents or an inbound listener.
 
 ## What it does
 
@@ -10,7 +10,7 @@ The bot uses Python 3.12+, `discord.py`, `aiohttp`, `python-dotenv`, and a small
 - Treats every Plex media session whose state is not `stopped` as active, including paused or buffering sessions.
 - Starts the grace period only after a successful Plex poll reports no active sessions. Failed HTTP requests, timeouts, network errors, and invalid XML preserve the last known state.
 - Combines Plex and manual reasons into one system-required power request. The request clears when no reason remains and during controlled shutdown cleanup.
-- Sends a direct message to each manual timer requester when the combined guard finally expires. Notifications are enabled by default and can be changed with `/guard-notifications enabled:false` or `/guard-notifications enabled:true`.
+- Sends Plex protection start/end and guard-expiry status DMs to the configured local owner (`DISCORD_OWNER_USER_ID`). The owner can turn these DMs on or off with `/guard-notifications enabled:<true/false>`. Plex-exit and guard-expiry DMs include the Windows inactivity sleep timeout for the current power source.
 
 The request does not keep the display on and cannot override explicit sleep or shutdown, power loss, or an already sleeping machine. The bot must be running and connected to Discord to receive commands; it cannot wake the PC.
 
@@ -34,7 +34,7 @@ python -m pip install -e .
 Copy-Item .env.example .env
 ```
 
-Edit `.env` with the Discord Application ID, bot token, and Plex settings. Keep the file private. Then start the bot:
+Edit `.env` with the Discord Application ID, your Discord user ID as `DISCORD_OWNER_USER_ID`, bot token, and Plex settings. Keep the file private. Then start the bot:
 
 ```powershell
 python -m plex_sleep_guard_bot
@@ -53,9 +53,9 @@ Application commands are always synced globally. They can take time to appear in
 | Command | Behavior |
 | --- | --- |
 | `/stay-awake minutes:<integer>` | Starts or extends a manual timer. The accepted range is 1 through `STAY_AWAKE_MAX_MINUTES` (default 480). The response is private. |
-| `/guard-notifications enabled:<true/false>` | Saves whether your account receives a DM when its manual requester's combined guard expires. The response is private. |
+| `/guard-notifications enabled:<true/false>` | Lets the configured owner enable or disable Plex and guard-expiry status DMs. The response is private. |
 
-An active manual request can outlast its requested timer when Plex playback or its grace period still holds the shared guard. In that case the requester's expiry DM waits until the final reason ends. Notification preferences are stored locally in `state/guard_notification_preferences.json` and default to enabled.
+An active manual request can outlast its requested timer when Plex playback or its grace period still holds the shared guard. If a manual timer contributed to the combined guard, the configured owner receives one expiry DM when all reasons end. Plex playback ending also produces its own notice after grace expires. The owner ID and notification preference are local configuration/state; the bot does not enumerate server members or send broadcast notices.
 
 ## Project data
 

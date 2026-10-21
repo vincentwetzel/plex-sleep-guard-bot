@@ -4,6 +4,8 @@
 
 - Updated the Windows launcher to prefer the project virtual environment and fall back to `python.exe` on `PATH`; the supervisor now runs the package from `src` without requiring an editable install.
 - Documented runtime dependency setup, interpreter selection, and shortcut behavior: shortcuts should launch the supervised start script when the stop script is expected to manage the bot.
+- Added required `DISCORD_OWNER_USER_ID` configuration and routed Plex and guard-expiry status DMs to that local owner. The owner controls these notifications with `/guard-notifications`.
+- Added the active Windows power plan's configured inactivity sleep timeout to Plex-exit and guard-expiry DMs, with AC/battery-aware values and a fallback if the setting cannot be read.
 
 ## 0.1.0 - Initial project implementation
 

@@ -18,9 +18,9 @@ src/plex_sleep_guard_bot/
   plex.py                # bounded aiohttp poll and XML session parsing
   playback.py            # IDLE/PLAYING/GRACE_PERIOD state machine
   leases.py              # Plex and manual reasons combined into one request
-  power_windows.py       # ctypes PowerCreateRequest/Set/Clear adapter
+  power_windows.py       # ctypes power request and sleep-timeout API adapter
   discord_bot.py         # Gateway client and global slash commands
-  notifications.py       # persisted per-user expiry DM preferences
+  notifications.py       # persisted local-owner status-DM preference
   logging_setup.py       # console and dated file logging/retention
   service.py             # Plex polling and lease-expiry loops
 docs/                    # setup, operation, architecture, troubleshooting
@@ -37,7 +37,7 @@ supervise_plex_sleep_guard_bot.ps1
 - **Lease coordinator:** combine `PLAYING`/`GRACE_PERIOD` and the manual deadline into one native request. Keep the request until both reasons end.
 - **Windows adapter:** use `PowerRequestSystemRequired` only; it never requests display-required behavior.
 - **Discord bot:** use the Gateway with non-privileged intents, sync commands globally, validate manual durations, and provide private command responses.
-- **Notifications:** save per-user DM preferences in project-local state. Notify manual requesters only after the combined guard releases.
+- **Notifications:** save the configured local owner's status-DM preference in project-local state. Send Plex and guard-expiry status DMs to that owner.
 - **Lifecycle and logging:** run polling, expiry, and status tasks; clear the request through controlled shutdown cleanup; write console and dated project logs; prune old logs.
 - **Windows supervisor:** maintain one hidden supervisor, restart after unexpected bot exit, and support graceful stop/restart markers.
 
@@ -51,10 +51,10 @@ manual timer not expired ──────────┘
 successful empty poll -> GRACE_PERIOD -> expiry -> Plex reason ends
 failed Plex poll -> preserve prior playback state and grace deadline
 manual timer expiry -> manual reason ends
-all reasons ended -> clear request and DM opted-in manual requesters
+all reasons ended -> clear request and DM configured owner
 ```
 
-If one reason ends while another remains active, the native request remains set. A manual requester is notified only after every guard reason ends, even if the manual timer itself expired earlier.
+If one reason ends while another remains active, the native request remains set. The configured owner receives the expiry notice only after every guard reason ends, even if the manual timer itself expired earlier.
 
 ## Follow-up work
 

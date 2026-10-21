@@ -1,4 +1,4 @@
-"""Persistent per-user preference for guard-expiry direct messages."""
+"""Persistent per-user preferences for manual guard-expiry direct messages."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class NotificationPreferences:
-    """Store opt-out preferences locally; notifications are enabled by default."""
+    """Store the local owner's DM preference; unset users default to enabled."""
 
     def __init__(self, file_path: Path) -> None:
         self.file_path = file_path

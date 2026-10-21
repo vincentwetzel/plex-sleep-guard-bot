@@ -37,6 +37,7 @@ def _discord_id(name: str) -> int:
 @dataclass(frozen=True, slots=True)
 class AppConfig:
     discord_application_id: int
+    discord_owner_user_id: int
     discord_bot_token: str
     plex_server_url: str
     plex_token: str
@@ -66,6 +67,7 @@ class AppConfig:
 
         return cls(
             discord_application_id=_discord_id("DISCORD_APPLICATION_ID"),
+            discord_owner_user_id=_discord_id("DISCORD_OWNER_USER_ID"),
             discord_bot_token=discord_token,
             plex_server_url=server_url,
             plex_token=os.getenv("PLEX_TOKEN", "").strip(),

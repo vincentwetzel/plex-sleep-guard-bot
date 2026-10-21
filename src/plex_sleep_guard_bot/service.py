@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 from .leases import GuardExpired, LeaseCoordinator
 from .plex import PlexMonitor
-from .playback import PlaybackStateMachine
+from .playback import PlaybackState, PlaybackStateMachine
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +22,7 @@ async def plex_poll_loop(
     poll_interval_seconds: int,
     on_state: Callable[[str], None],
     on_guard_expired: Callable[[GuardExpired], Awaitable[None]],
+    on_plex_protection: Callable[[bool], Awaitable[None]],
 ) -> None:
     last_successful_poll: datetime | None = None
     while True:
@@ -40,6 +41,13 @@ async def plex_poll_loop(
             except OSError:
                 # Keep playback state and retry synchronization from the expiry loop.
                 logger.exception("Could not synchronize the Windows power request; it will be retried.")
+            started_plex_protection = (
+                change is not None
+                and change.previous is PlaybackState.IDLE
+                and change.current is PlaybackState.PLAYING
+            )
+            if started_plex_protection:
+                await on_plex_protection(True)
             logger.info(
                 "Plex poll succeeded: %d active session(s); state=%s; last success=%s",
                 len(result.sessions),
@@ -65,6 +73,7 @@ async def lease_expiry_loop(
     leases: LeaseCoordinator,
     on_state: Callable[[str], None],
     on_guard_expired: Callable[[GuardExpired], Awaitable[None]],
+    on_plex_protection: Callable[[bool], Awaitable[None]],
 ) -> None:
     while True:
         now = time.monotonic()
@@ -78,4 +87,6 @@ async def lease_expiry_loop(
                 await on_guard_expired(expiry)
         except OSError:
             logger.exception("Could not synchronize the Windows power request; retrying shortly.")
+        if change is not None and change.current is PlaybackState.IDLE:
+            await on_plex_protection(False)
         await asyncio.sleep(1)

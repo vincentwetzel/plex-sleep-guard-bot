@@ -10,7 +10,7 @@ This guide creates a bot application, stores its credential locally, and install
 4. Open **Bot**. Use **Reset Token** to generate a bot token, then copy it directly into `DISCORD_BOT_TOKEN` in `.env`.
 5. Save `.env` locally. Do not paste the token into source control, chat, screenshots, logs, or support messages. If it is lost or exposed, reset it in the portal and update `.env`.
 
-The Application ID is the only Discord ID this project needs to configure. It is used for command registration and diagnostics. Global command sync means no test server ID is required. The official [getting started guide](https://docs.discord.com/developers/quick-start/getting-started) describes application setup and credentials. See Discord's [bot token guidance](https://support-dev.discord.com/hc/en-us/articles/6470840524311-Why-can-t-I-copy-my-bot-s-token) if the token is not visible.
+The Application ID is used for command registration and diagnostics. The local owner also configures their Discord user ID as `DISCORD_OWNER_USER_ID` so status DMs have one recipient. Global command sync means no test server ID is required. The official [getting started guide](https://docs.discord.com/developers/quick-start/getting-started) describes application setup and credentials. See Discord's [bot token guidance](https://support-dev.discord.com/hc/en-us/articles/6470840524311-Why-can-t-I-copy-my-bot-s-token) if the token is not visible.
 
 ## 2. Choose installation scopes and permissions
 
@@ -29,10 +29,10 @@ Discord's [installation guide](https://docs.discord.com/developers/quick-start/g
 2. Open the generated install link and choose **Add to server**.
 3. Select the test server, review the scopes and permissions, and authorize.
 
-No server ID is needed in the bot configuration. Discord Developer Mode and copying user/server IDs are unnecessary for the current features.
+No server ID is needed in the bot configuration. The local owner must provide their own user ID as `DISCORD_OWNER_USER_ID` so the bot knows where to send status DMs.
 
 ## 4. Run the bot and verify commands
 
-Install the project and start it on the Windows machine that should stay awake. Confirm it is online in the server, then run `/stay-awake` with an integer duration within `STAY_AWAKE_MAX_MINUTES`. Responses are private. Use `/guard-notifications enabled:false` to opt out of the expiry DM, or `enabled:true` to opt in again.
+Install the project and start it on the Windows machine that should stay awake. Set `DISCORD_OWNER_USER_ID` in `.env` to your Discord user ID; enable Developer Mode in Discord and use **Copy User ID** on your account. All Plex and guard-expiry status DMs go to that owner account. Confirm the bot is online in the server, then run `/stay-awake` with an integer duration within `STAY_AWAKE_MAX_MINUTES`. Responses are private. The configured owner can use `/guard-notifications enabled:false` to disable status DMs, or `enabled:true` to re-enable them.
 
 Application commands sync globally at startup and may take time to appear. The bot must remain running and connected to Discord to receive a command. It cannot wake a sleeping PC. The Windows request prevents automatic idle sleep only; it does not inhibit the display or prevent explicit sleep/shutdown or power loss.

@@ -8,9 +8,9 @@ The bot is one Python process running in a signed-in Windows user's session. It 
 - `plex` owns the `aiohttp` session and a 15-second bounded request to `/status/sessions`. It sends `X-Plex-Token` only when configured, parses direct XML children with a media `type`, and distinguishes failed requests from successful empty results.
 - `playback` implements `IDLE`, `PLAYING`, and `GRACE_PERIOD` timing using monotonic seconds.
 - `leases` combines playback/grace state and a manual deadline. It owns at most one native request and tracks manual requesters for expiry notifications.
-- `power_windows` is the only native boundary. It creates a request with `PowerCreateRequest`, sets `PowerRequestSystemRequired`, and clears/closes it through the request object's lifecycle.
+- `power_windows` is the native boundary. It creates and clears the system-required power request, and reads the active plan's AC/DC sleep timeout plus current power source when an exit-status DM is prepared.
 - `discord_bot` uses `discord.py` and only the non-privileged `guilds` intent. It defines the two slash commands and syncs them globally during startup.
-- `notifications` persists each user's enabled/disabled choice in project-local JSON. New users default to enabled.
+- `notifications` persists the configured owner's enabled/disabled status-DM choice in project-local JSON. The owner is configured by `DISCORD_OWNER_USER_ID`; the bot does not enumerate guild members or maintain a Plex subscriber list.
 - `service` runs independent Plex polling and one-second lease/grace expiry loops.
 - `logging_setup` logs to the console and a project-local daily file, switches files at local midnight, and best-effort prunes files outside the seven-day retention window.
 - `__main__` wires services together, logs a `powercfg /requests` snapshot about once per minute while protected, observes supervisor control markers, and closes tasks, leases, Plex, and Discord on exit.
@@ -25,7 +25,9 @@ HTTP error statuses, network errors, timeouts, and invalid XML are failed observ
 
 The request is active when either `PLAYING`/`GRACE_PERIOD` is active or the manual deadline has not elapsed. A new reason reuses the existing request. Expiry of one reason cannot clear the request while another reason remains.
 
-When the last reason ends, the coordinator clears and closes the native request. It returns the recorded manual requester IDs; enabled requesters are then sent a DM. DM failure is logged and does not restore the lease. A manual timer can end before the combined guard: its requester stays recorded until Plex playback and grace also finish.
+When Plex transitions from `IDLE` to `PLAYING`, the configured owner receives a DM that Plex protection started. The owner receives a second DM only when the grace period expires and Plex reaches `IDLE`; an empty poll starting grace does not send an end notice. Failed Plex polls preserve the state and do not send notices. The second DM describes the Plex reason ending, notes that a manual timer may still keep the PC awake, and includes the configured Windows sleep timeout for the current power source.
+
+When the last combined reason ends, the coordinator clears and closes the native request. If at least one manual timer requester was recorded, the configured owner receives one guard-expiry DM with the configured inactivity timeout for the current AC/battery state. If the Windows settings cannot be read, the DM says so and still reports that the guard ended. The value is a configured timeout, not a prediction that Windows will sleep at a particular time. DM failure is logged and does not restore the lease. A manual timer can end before the combined guard; the expiry notice waits until Plex playback and grace also finish.
 
 The app closes the lease in a `finally` cleanup path after controlled cancellation or a bot exit. Forced process termination bypasses Python cleanup; Windows normally drops process-owned requests when the process exits.
 

@@ -5,7 +5,7 @@ Start with the current file in `logs/PlexSleepGuardBot-YYYY-MM-DD.log` under the
 ## The bot does not start
 
 - Confirm the selected Python interpreter is version 3.12 or later and has `discord.py`, `aiohttp`, and `python-dotenv` installed. The launcher prefers `.venv\Scripts\python.exe` and otherwise uses the first `python.exe` on `PATH`.
-- Confirm `.env` exists in the project root and includes `DISCORD_APPLICATION_ID` and `DISCORD_BOT_TOKEN`.
+- Confirm `.env` exists in the project root and includes `DISCORD_APPLICATION_ID`, `DISCORD_OWNER_USER_ID`, and `DISCORD_BOT_TOKEN`.
 - Confirm the Application ID contains only a positive numeric ID and the token is current. If a token was reset in Discord, update the local `.env`.
 - Confirm the project directory can create/write `logs/`; notification preferences are written under `state/` when changed.
 - The native adapter requires Windows. It stops at startup on other platforms.
@@ -36,14 +36,17 @@ Check that the `/stay-awake` response accepted the requested duration and that t
 
 The request cannot prevent explicit sleep or shutdown, power loss, or a machine that has already gone to sleep. Discord commands cannot wake the machine. The bot must already be running and connected before a command arrives.
 
-## Guard-expiry DM was not received
+Plex-exit and guard-expiry DMs report the configured Windows inactivity sleep timeout for the current AC/battery source. This is the power-plan setting, not a countdown; other applications and system policies can affect whether or when the PC sleeps. If a DM says the value could not be read, check the log for a Windows power API error.
 
-- DMs go to users who requested a manual `/stay-awake` timer, and only when the combined Plex/manual guard fully releases.
-- Notifications default to enabled. Run `/guard-notifications enabled:true` to ensure your preference is on; use `enabled:false` to turn it off.
+## A Plex or guard-expiry DM was not received
+
+- All Plex and guard-expiry DMs go to the account configured by `DISCORD_OWNER_USER_ID`; the bot does not send Plex notices to server members or subscribers.
+- The owner can use `/guard-notifications enabled:true` to enable status DMs or `enabled:false` to disable them. Other users cannot change this preference.
+- Plex start/end notices follow Plex state transitions; the end notice waits through the configured grace period. Guard-expiry DMs are sent when the combined Plex/manual guard fully releases.
 - If a Plex lease remains after the manual timer ends, the combined guard has not expired and the DM waits.
 - Discord privacy settings may block messages from server apps. Allow DMs from the app/server and make another request to confirm.
 - The bot must remain connected until the combined guard expires. If it exits first, the OS request is cleaned up but no DM can be sent during that offline period.
-- Preferences are stored in `state/guard_notification_preferences.json`; deleting the file resets everyone to the default enabled state.
+- The owner's preference is stored in `state/guard_notification_preferences.json`; deleting the file resets status DMs to enabled.
 
 ## The supervisor does not start, stop, or restart
 
