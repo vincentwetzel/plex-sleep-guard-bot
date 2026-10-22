@@ -10,7 +10,7 @@ The bot uses Python 3.12+, `discord.py`, `aiohttp`, `python-dotenv`, and a small
 - Treats every Plex media session whose state is not `stopped` as active, including paused or buffering sessions.
 - Starts the grace period only after a successful Plex poll reports no active sessions. Failed HTTP requests, timeouts, network errors, and invalid XML preserve the last known state.
 - Combines Plex and manual reasons into one system-required power request. The request clears when no reason remains and during controlled shutdown cleanup.
-- Sends Plex protection start/end and guard-expiry status DMs to the configured local owner (`DISCORD_OWNER_USER_ID`). The owner can turn these DMs on or off with `/guard-notifications enabled:<true/false>`. Plex-exit and guard-expiry DMs include the Windows inactivity sleep timeout for the current power source.
+- Sends concise Plex protection and guard-expiry DMs to the configured local owner (`DISCORD_OWNER_USER_ID`). Start notices show the grace period; end notices show the Windows inactivity timeout and, when the active power source is known, an approximate time if the PC stays idle from then. The owner can turn these DMs on or off with `/guard-notifications enabled:<true/false>`.
 
 The request does not keep the display on and cannot override explicit sleep or shutdown, power loss, or an already sleeping machine. The bot must be running and connected to Discord to receive commands; it cannot wake the PC.
 
@@ -55,7 +55,7 @@ Application commands are always synced globally. They can take time to appear in
 | `/stay-awake minutes:<integer>` | Starts or extends a manual timer. The accepted range is 1 through `STAY_AWAKE_MAX_MINUTES` (default 480). The response is private. |
 | `/guard-notifications enabled:<true/false>` | Lets the configured owner enable or disable Plex and guard-expiry status DMs. The response is private. |
 
-An active manual request can outlast its requested timer when Plex playback or its grace period still holds the shared guard. If a manual timer contributed to the combined guard, the configured owner receives one expiry DM when all reasons end. Plex playback ending also produces its own notice after grace expires. The owner ID and notification preference are local configuration/state; the bot does not enumerate server members or send broadcast notices.
+An active manual request can outlast its requested timer when Plex playback or its grace period still holds the shared guard. If a manual timer contributed to the combined guard, the configured owner receives one expiry DM when all reasons end. A Plex end DM is sent only after a successful poll finds no active sessions and the full grace period elapses; resumed playback cancels that grace period. The owner ID and notification preference are local configuration/state; the bot does not enumerate server members or send broadcast notices.
 
 ## Project data
 

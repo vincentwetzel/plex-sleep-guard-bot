@@ -36,10 +36,12 @@ Check that the `/stay-awake` response accepted the requested duration and that t
 
 The request cannot prevent explicit sleep or shutdown, power loss, or a machine that has already gone to sleep. Discord commands cannot wake the machine. The bot must already be running and connected before a command arrives.
 
-Plex-exit and guard-expiry DMs report the configured Windows inactivity sleep timeout for the current AC/battery source. This is the power-plan setting, not a countdown; other applications and system policies can affect whether or when the PC sleeps. If a DM says the value could not be read, check the log for a Windows power API error.
+Plex-exit and guard-expiry DMs report the configured Windows inactivity timeout. When the current power source is known, they also show an approximate clock time assuming the PC stays idle from the DM onward. Windows counts inactivity from user activity, so this is only a reference time; other applications and system policies can also affect sleep. If a DM says the setting is unavailable, check the log for a Windows power API error.
 
 ## A Plex or guard-expiry DM was not received
 
+- A Plex end DM is sent only after a successful empty Plex poll starts grace and the full configured grace period elapses with no playback resuming. For example, with a five-minute grace period, a log entry changing `PLAYING` to `GRACE_PERIOD` marks the start; look for `GRACE_PERIOD` to `IDLE` about five minutes later. A failed Plex poll does not start or finish grace.
+- Status DMs are attempted once when their event occurs and are not queued for a later Discord reconnect. Discord HTTP send errors are logged, but successful sends are not, so the log cannot confirm delivery by itself.
 - All Plex and guard-expiry DMs go to the account configured by `DISCORD_OWNER_USER_ID`; the bot does not send Plex notices to server members or subscribers.
 - The owner can use `/guard-notifications enabled:true` to enable status DMs or `enabled:false` to disable them. Other users cannot change this preference.
 - Plex start/end notices follow Plex state transitions; the end notice waits through the configured grace period. Guard-expiry DMs are sent when the combined Plex/manual guard fully releases.

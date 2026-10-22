@@ -15,7 +15,7 @@ from .logging_setup import configure_logging
 from .notifications import NotificationPreferences
 from .plex import PlexMonitor
 from .playback import PlaybackStateMachine
-from .power_windows import WindowsPowerRequest, get_sleep_timeout_info
+from .power_windows import SleepTimeoutInfo, WindowsPowerRequest, get_sleep_timeout_info
 from .service import lease_expiry_loop, plex_poll_loop
 
 logger = logging.getLogger(__name__)
@@ -74,9 +74,9 @@ async def run(config: AppConfig) -> None:
 
     bot = SleepGuardBot(config, leases, notification_preferences)
 
-    def sleep_timeout_description() -> str | None:
+    def sleep_timeout_description() -> SleepTimeoutInfo | None:
         try:
-            return get_sleep_timeout_info().describe()
+            return get_sleep_timeout_info()
         except OSError:
             logger.warning("Could not read the Windows sleep timeout for a guard-expiry DM.", exc_info=True)
             return None
@@ -85,8 +85,8 @@ async def run(config: AppConfig) -> None:
         await bot.notify_guard_expired(expiry, sleep_timeout_description())
 
     async def notify_plex_protection(active: bool) -> None:
-        timeout_description = sleep_timeout_description() if not active else None
-        await bot.notify_plex_protection(active, timeout_description)
+        sleep_timeout = sleep_timeout_description() if not active else None
+        await bot.notify_plex_protection(active, config.plex_grace_period_minutes, sleep_timeout)
 
     tasks: list[asyncio.Task[None]] = []
     try:

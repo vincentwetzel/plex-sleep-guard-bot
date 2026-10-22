@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Shortened Plex and guard-expiry DMs to focus on protection state and timing. End notices now show the configured inactivity timeout and an approximate local time when the power source is known, labeled as an estimate if idle from the DM onward.
+- Clarified that Plex end notices come after the full grace period, and documented the one-shot DM behavior and what the logs can confirm.
 - Updated the Windows launcher to prefer the project virtual environment and fall back to `python.exe` on `PATH`; the supervisor now runs the package from `src` without requiring an editable install.
 - Documented runtime dependency setup, interpreter selection, and shortcut behavior: shortcuts should launch the supervised start script when the stop script is expected to manage the bot.
 - Added required `DISCORD_OWNER_USER_ID` configuration and routed Plex and guard-expiry status DMs to that local owner. The owner controls these notifications with `/guard-notifications`.
